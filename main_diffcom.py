@@ -385,9 +385,11 @@ def p_sample_loop(config, noise_schedule, unet, diffusion, operator, cond_method
             measurement_retx = operator.observe_and_transpose(input_image)
             
             # Update 'ofdm_sig'
+            
             latent_mask_flat = latent_mask.reshape(config.batch_size, -1)
             ofdm_sig_refined = measurement['ofdm_sig'] * (1 - latent_mask_flat) + measurement_retx['ofdm_sig'] * latent_mask_flat
-            
+            # ofdm_sig_refined = measurement['ofdm_sig'] * (1 - latent_mask_flat) + \
+            #        (measurement['ofdm_sig'] + measurement_retx['ofdm_sig']) / 2.0 * latent_mask_flat
             # Update 'x_mse'
             s_hat_refined = operator.channel.transpose(ofdm_sig_refined, measurement['cof_est']) 
             x_mse_refined = operator.decode(s_hat_refined)

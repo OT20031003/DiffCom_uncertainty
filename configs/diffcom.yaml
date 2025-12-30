@@ -55,7 +55,7 @@ N: 1.0 # scaling factor to adjust the total rounds of reverse sampling steps. Mo
 retransmission:
   enable: True       # Set to True to enable uncertainty-aware retransmission
   rate: 0.1           # Retransmission rate (top 10% uncertainty)
-  guidance_weight: 5.0 # Weight multiplier for retransmitted regions
+  guidance_weight: 1.0 # Weight multiplier for retransmitted regions
 # -------------------------------
 
 diffcom_series:
