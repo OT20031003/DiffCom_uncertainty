@@ -387,7 +387,7 @@ def p_sample_loop(config, noise_schedule, unet, diffusion, operator, cond_method
             # Update 'ofdm_sig'
             
             latent_mask_flat = latent_mask.reshape(config.batch_size, -1)
-            ofdm_sig_refined = measurement['ofdm_sig'] * (1 - latent_mask_flat) + measurement_retx['ofdm_sig'] * latent_mask_flat
+            ofdm_sig_refined = measurement['ofdm_sig'] #* (1 - latent_mask_flat) + measurement_retx['ofdm_sig'] * latent_mask_flat
             # ofdm_sig_refined = measurement['ofdm_sig'] * (1 - latent_mask_flat) + \
             #        (measurement['ofdm_sig'] + measurement_retx['ofdm_sig']) / 2.0 * latent_mask_flat
             # Update 'x_mse'
@@ -397,7 +397,18 @@ def p_sample_loop(config, noise_schedule, unet, diffusion, operator, cond_method
             measurement_refined = copy.deepcopy(measurement)
             measurement_refined['ofdm_sig'] = ofdm_sig_refined
             measurement_refined['x_mse'] = x_mse_refined
-            
+            # ★実証用に追加: Pass 1 と同じシードを再設定する
+            # これにより、拡散過程の乱数も同じになるため、画像が完全に一致するはずです
+            torch.manual_seed(config.seed + 1)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed(config.seed + 1)
+            # =============== 【追加すべき修正】 ===============
+            # 解説: Pass 1 では x_init 生成時に torch.randn_like が呼ばれ、乱数が消費されました。
+            # Pass 2 で拡散ループに入る前に、同じ回数だけ乱数を消費して状態を合わせる必要があります。
+            # ※ blind_diffcom の場合は cof_init 用の乱数も消費する必要がありますが、
+            #   ログを見る限り blind ではないようなので以下だけでOKです。
+            _ = torch.randn_like(input_image) 
+            # ================================================
             # Save Uncertainty and Mask
             util.mkdir(config.save_path + '/uncertainty')
             util.imsave_batch(util.tensor2uint_batch(unc_map.repeat(1,3,1,1)/unc_map.max()), names, config.save_path + '/uncertainty', f"unc_")
