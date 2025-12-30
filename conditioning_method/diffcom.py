@@ -125,7 +125,7 @@ class DiffCom(nn.Module):
         t_step = ns.seq[i]
         sigma_t = ns.reduced_alpha_cumprod[t_step].cpu().numpy()
         x_t = x_t.requires_grad_()
-        x_t_minus_1_prime, x_0_hat, _ = utils_model.model_fn(x_t,
+        x_t_minus_1_prime, x_0_hat, _,noise = utils_model.model_fn(x_t,
                                                              noise_level=sigma_t * 255,
                                                              model_out_type='pred_x_prev_and_start', \
                                                              model_diffusion=unet,
@@ -133,7 +133,7 @@ class DiffCom(nn.Module):
                                                              ddim_sample=config.ddim_sample)
         if last_timestep:
             loss = loss_wrapper.forward(measurement, x_0_hat, h_0_hat, operator, self.conditioning_method)
-            return x_0_hat, h_0_hat, x_t_minus_1_prime, h_t_minus_1_prime, loss
+            return x_0_hat, h_0_hat, x_t_minus_1_prime, h_t_minus_1_prime, loss,noise
         else:
             loss = loss_wrapper.forward(measurement, x_0_hat, h_t, operator, self.conditioning_method)
             total_loss = sum(loss.values())
@@ -142,7 +142,7 @@ class DiffCom(nn.Module):
                                    ns.t_start - 1)
             x_t_minus_1 = x_t_minus_1_prime - x_grad * learning_rate
             x_t_minus_1 = x_t_minus_1.detach_()
-            return x_0_hat, h_0_hat, x_t_minus_1, h_t_minus_1, loss
+            return x_0_hat, h_0_hat, x_t_minus_1, h_t_minus_1, loss,noise
 
 
 @register_conditioning_method(name='hifi_diffcom')

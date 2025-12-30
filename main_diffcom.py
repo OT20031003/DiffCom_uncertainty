@@ -125,13 +125,13 @@ def run_diffusion_loop(config, noise_schedule, unet, diffusion, operator, cond_m
     x_recon = None
     
     for i in pbar:
-        x_0_hat, h_0_hat, x_t, h_t, norm = cond_method(config, i, noise_schedule,
+        x_0_hat, h_0_hat, x_t, h_t, norm, noise = cond_method(config, i, noise_schedule,
                                                        x_init if i == 0 else x_t,
                                                        cof_init if i == 0 else h_t,
                                                        power if config.conditioning_method == 'blind_diffcom' else None,
                                                        measurement, unet, diffusion, operator, loss_wrapper,
                                                        last_timestep=(seq[i] == seq[-1]))
-        
+        print(noise)
         if return_history:
             x0_history.append(x_0_hat.detach().cpu())
 

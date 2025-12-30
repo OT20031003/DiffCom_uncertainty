@@ -251,7 +251,8 @@ def model_fn(x, noise_level, model_diffusion, vec_t=None, model_out_type='pred_x
         )
 
     if model_out_type == 'pred_x_prev_and_start':
-        return out["sample"], out["pred_xstart"], t_step
+        # "noise" キーが存在しない場合（t=0など）のハンドリングが必要であれば out.get("noise", None) とします
+        return out["sample"], out["pred_xstart"], t_step, out.get("noise", None)
     elif model_out_type == 'pred_x_prev':
         out = out["sample"]
     elif model_out_type == 'pred_xstart':
